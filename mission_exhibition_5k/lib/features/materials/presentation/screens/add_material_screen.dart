@@ -6,6 +6,10 @@ import 'package:mission_exhibition_5k/features/materials/domain/entities/materia
 import 'package:mission_exhibition_5k/features/materials/presentation/bloc/material_bloc.dart';
 import 'package:mission_exhibition_5k/features/materials/presentation/bloc/material_event.dart';
 import 'package:mission_exhibition_5k/features/materials/presentation/bloc/material_state.dart';
+import 'dart:io' show File;
+import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:image_picker/image_picker.dart';
+
 
 /// Screen for adding a new material
 class AddMaterialScreen extends StatefulWidget {
@@ -25,21 +29,135 @@ class _AddMaterialScreenState extends State<AddMaterialScreen> {
   final _priceController = TextEditingController();
   late String _selectedSection;
 
+  final ImagePicker _picker = ImagePicker();
+
   @override
   void initState() {
     super.initState();
     _selectedSection = widget.missionSection ??
         AppConstants.missionSections.first.name;
+    
+    // Add listener to rebuild when imageUrl changes so preview works reactively
+    _imageUrlController.addListener(_onImageUrlChanged);
+  }
+
+  void _onImageUrlChanged() {
+    if (mounted) setState(() {});
   }
 
   @override
   void dispose() {
+    _imageUrlController.removeListener(_onImageUrlChanged);
     _titleController.dispose();
     _descriptionController.dispose();
     _imageUrlController.dispose();
     _priceController.dispose();
     super.dispose();
   }
+
+  Future<void> _pickImage() async {
+    try {
+      final XFile? image = await _picker.pickImage(
+        source: ImageSource.gallery,
+      );
+      if (image != null) {
+        setState(() {
+          _imageUrlController.text = image.path;
+        });
+      }
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error picking image: $e')),
+      );
+    }
+  }
+
+  Widget _buildImagePreview() {
+    final path = _imageUrlController.text.trim();
+    if (path.isEmpty) {
+      return InkWell(
+        onTap: _pickImage,
+        borderRadius: BorderRadius.circular(12),
+        child: Container(
+          height: 140,
+          decoration: BoxDecoration(
+            border: Border.all(color: Colors.grey[300]!, width: 2),
+            borderRadius: BorderRadius.circular(12),
+            color: Colors.grey[50],
+          ),
+          child: const Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.add_photo_alternate_outlined, size: 40, color: Colors.grey),
+              SizedBox(height: 8),
+              Text(
+                'Upload Image from Local Machine',
+                style: TextStyle(fontWeight: FontWeight.w600, color: Colors.grey),
+              ),
+              SizedBox(height: 4),
+              Text(
+                'or paste a remote URL below',
+                style: TextStyle(fontSize: 12, color: Colors.grey),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    final isNetwork = path.startsWith('http') || path.startsWith('https') || path.startsWith('blob:');
+    
+    return Container(
+      height: 180,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey[300]!),
+      ),
+      child: Stack(
+        children: [
+          ClipRRect(
+            borderRadius: BorderRadius.circular(11),
+            child: SizedBox(
+              width: double.infinity,
+              height: double.infinity,
+              child: isNetwork || kIsWeb
+                  ? Image.network(
+                      path,
+                      fit: BoxFit.contain,
+                      errorBuilder: (_, _, _) => const Center(
+                        child: Icon(Icons.broken_image, size: 48, color: Colors.red),
+                      ),
+                    )
+                  : Image.file(
+                      File(path),
+                      fit: BoxFit.contain,
+                      errorBuilder: (_, _, _) => const Center(
+                        child: Icon(Icons.broken_image, size: 48, color: Colors.red),
+                      ),
+                    ),
+            ),
+          ),
+          Positioned(
+            top: 8,
+            right: 8,
+            child: CircleAvatar(
+              backgroundColor: Colors.black.withValues(alpha: 0.6),
+              child: IconButton(
+                icon: const Icon(Icons.delete, color: Colors.white),
+                onPressed: () {
+                  setState(() {
+                    _imageUrlController.clear();
+                  });
+                },
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -112,13 +230,21 @@ class _AddMaterialScreenState extends State<AddMaterialScreen> {
                       },
                     ),
                     const SizedBox(height: 16),
+                    // Image Upload & Preview Section
+                    _buildImagePreview(),
+                    const SizedBox(height: 16),
                     // Image URL field
                     TextFormField(
                       controller: _imageUrlController,
-                      decoration: const InputDecoration(
-                        labelText: 'Image URL (optional)',
-                        prefixIcon: Icon(Icons.image),
+                      decoration: InputDecoration(
+                        labelText: 'Image Path / URL (optional)',
+                        prefixIcon: const Icon(Icons.image),
                         hintText: 'https://example.com/image.jpg',
+                        suffixIcon: IconButton(
+                          icon: const Icon(Icons.file_upload),
+                          tooltip: 'Upload from Local Machine',
+                          onPressed: _pickImage,
+                        ),
                       ),
                     ),
                     const SizedBox(height: 16),

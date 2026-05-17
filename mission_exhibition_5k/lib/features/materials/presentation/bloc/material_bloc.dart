@@ -63,7 +63,12 @@ class MaterialBloc extends Bloc<MaterialEvent, MaterialBlocState> {
       await materialRepository.createMaterial(event.material);
       emit(const MaterialBlocOperationSuccess('Material created successfully'));
       final materials = await materialRepository.getAllMaterials();
-      emit(MaterialsBlocLoaded(materials));
+      final filtered = materials
+          .where((m) =>
+              m.missionSection.toLowerCase() ==
+              event.material.missionSection.toLowerCase())
+          .toList();
+      emit(MaterialsBlocLoaded(filtered));
     } catch (e) {
       emit(MaterialBlocError('Failed to create material: ${e.toString()}'));
     }
@@ -79,7 +84,12 @@ class MaterialBloc extends Bloc<MaterialEvent, MaterialBlocState> {
       await materialRepository.updateMaterial(event.id, event.material);
       emit(const MaterialBlocOperationSuccess('Material updated successfully'));
       final materials = await materialRepository.getAllMaterials();
-      emit(MaterialsBlocLoaded(materials));
+      final filtered = materials
+          .where((m) =>
+              m.missionSection.toLowerCase() ==
+              event.material.missionSection.toLowerCase())
+          .toList();
+      emit(MaterialsBlocLoaded(filtered));
     } catch (e) {
       emit(MaterialBlocError('Failed to update material: ${e.toString()}'));
     }
@@ -92,10 +102,24 @@ class MaterialBloc extends Bloc<MaterialEvent, MaterialBlocState> {
   ) async {
     emit(MaterialBlocLoading());
     try {
+      String section = '';
+      try {
+        final material = await materialRepository.getMaterialById(event.id);
+        section = material.missionSection;
+      } catch (_) {}
+
       await materialRepository.deleteMaterial(event.id);
       emit(const MaterialBlocOperationSuccess('Material deleted successfully'));
+      
       final materials = await materialRepository.getAllMaterials();
-      emit(MaterialsBlocLoaded(materials));
+      if (section.isNotEmpty) {
+        final filtered = materials
+            .where((m) => m.missionSection.toLowerCase() == section.toLowerCase())
+            .toList();
+        emit(MaterialsBlocLoaded(filtered));
+      } else {
+        emit(MaterialsBlocLoaded(materials));
+      }
     } catch (e) {
       emit(MaterialBlocError('Failed to delete material: ${e.toString()}'));
     }

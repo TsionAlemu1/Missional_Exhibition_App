@@ -6,6 +6,9 @@ import 'package:mission_exhibition_5k/features/materials/presentation/bloc/mater
 import 'package:mission_exhibition_5k/features/materials/presentation/bloc/material_event.dart';
 import 'package:mission_exhibition_5k/features/materials/presentation/bloc/material_state.dart';
 import 'edit_material_screen.dart';
+import 'dart:io' show File;
+import 'package:flutter/foundation.dart' show kIsWeb;
+
 
 /// Screen displaying full details of a single material
 class MaterialDetailScreen extends StatelessWidget {
@@ -99,17 +102,32 @@ class MaterialDetailScreen extends StatelessWidget {
                     height: 280,
                     color: Colors.grey[100],
                     child: material.imageUrl.isNotEmpty
-                        ? Image.network(
-                            material.imageUrl,
-                            fit: BoxFit.contain,
-                            errorBuilder: (_, _, _) => Center(
-                              child: Icon(
-                                Icons.image_not_supported,
-                                size: 64,
-                                color: Colors.grey[400],
-                              ),
-                            ),
-                          )
+                        ? (material.imageUrl.startsWith('http') ||
+                                material.imageUrl.startsWith('https') ||
+                                material.imageUrl.startsWith('blob:') ||
+                                kIsWeb
+                            ? Image.network(
+                                material.imageUrl,
+                                fit: BoxFit.contain,
+                                errorBuilder: (_, _, _) => Center(
+                                  child: Icon(
+                                    Icons.image_not_supported,
+                                    size: 64,
+                                    color: Colors.grey[400],
+                                  ),
+                                ),
+                              )
+                            : Image.file(
+                                File(material.imageUrl),
+                                fit: BoxFit.contain,
+                                errorBuilder: (_, _, _) => Center(
+                                  child: Icon(
+                                    Icons.image_not_supported,
+                                    size: 64,
+                                    color: Colors.grey[400],
+                                  ),
+                                ),
+                              ))
                         : Center(
                             child: Icon(
                               _getSectionIcon(),

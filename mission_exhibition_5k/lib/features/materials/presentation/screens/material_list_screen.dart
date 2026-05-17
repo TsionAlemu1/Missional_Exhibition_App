@@ -8,6 +8,9 @@ import 'package:mission_exhibition_5k/features/materials/presentation/bloc/mater
 import 'package:mission_exhibition_5k/features/materials/presentation/bloc/material_state.dart';
 import 'add_material_screen.dart';
 import 'material_detail_screen.dart';
+import 'dart:io' show File;
+import 'package:flutter/foundation.dart' show kIsWeb;
+
 
 /// Screen that lists materials filtered by mission section
 class MaterialListScreen extends StatefulWidget {
@@ -200,14 +203,26 @@ class _MaterialCard extends StatelessWidget {
                   height: 72,
                   color: Colors.grey[100],
                   child: material.imageUrl.isNotEmpty
-                      ? Image.network(
-                          material.imageUrl,
-                          fit: BoxFit.cover,
-                          errorBuilder: (_, _, _) => Icon(
-                            Icons.image_not_supported,
-                            color: Colors.grey[400],
-                          ),
-                        )
+                      ? (material.imageUrl.startsWith('http') ||
+                              material.imageUrl.startsWith('https') ||
+                              material.imageUrl.startsWith('blob:') ||
+                              kIsWeb
+                          ? Image.network(
+                              material.imageUrl,
+                              fit: BoxFit.cover,
+                              errorBuilder: (_, _, _) => Icon(
+                                Icons.image_not_supported,
+                                color: Colors.grey[400],
+                              ),
+                            )
+                          : Image.file(
+                              File(material.imageUrl),
+                              fit: BoxFit.cover,
+                              errorBuilder: (_, _, _) => Icon(
+                                Icons.image_not_supported,
+                                color: Colors.grey[400],
+                              ),
+                            ))
                       : Icon(
                           Icons.image,
                           color: Colors.grey[400],

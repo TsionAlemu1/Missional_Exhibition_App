@@ -103,7 +103,7 @@ lib/
 
 ## Home Screen
 
-<img width="376" height="722" alt="Screenshot 2026-05-18 115021" src="https://github.com/user-attachments/assets/6a9792f0-e732-4472-98a2-e9c3191afb24" />
+<img width="501" height="944" alt="Screenshot 2026-05-17 170937" src="https://github.com/user-attachments/assets/2109b1d2-508d-4d51-a721-1373a2ef793d" />
 
 
 ## Add Material Screen
@@ -117,6 +117,7 @@ lib/
 ## Edit Material Screen
 
 <img width="375" height="720" alt="Screenshot 2026-05-18 115302" src="https://github.com/user-attachments/assets/198f64b4-7bcc-48af-a07d-e6f47ed17aa1" />
+
 ## Edit success message 
 <img width="384" height="720" alt="Screenshot 2026-05-18 115324" src="https://github.com/user-attachments/assets/5cca75fe-6c9a-47ef-b208-351c5168f5b2" />
 

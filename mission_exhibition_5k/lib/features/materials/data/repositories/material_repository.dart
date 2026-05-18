@@ -19,7 +19,7 @@ class MaterialRepository implements AbstractMaterialRepository {
     final response = await dio.get(AppConstants.productsEndpoint);
     final List<dynamic> data = response.data as List<dynamic>;
     _cachedMaterials = data
-        .map((json) => MaterialModel.fromJson(json as Map<String, dynamic>))
+        .map<MaterialEntity>((json) => MaterialModel.fromJson(json as Map<String, dynamic>))
         .toList();
     return _cachedMaterials!;
   }
@@ -39,6 +39,7 @@ class MaterialRepository implements AbstractMaterialRepository {
   @override
   Future<MaterialEntity> createMaterial(MaterialEntity material) async {
     await getAllMaterials();
+    _cachedMaterials = List<MaterialEntity>.of(_cachedMaterials!);
     
     // Find next available ID
     final nextId = _cachedMaterials!.isEmpty 
@@ -77,6 +78,7 @@ class MaterialRepository implements AbstractMaterialRepository {
   @override
   Future<MaterialEntity> updateMaterial(int id, MaterialEntity material) async {
     await getAllMaterials();
+    _cachedMaterials = List<MaterialEntity>.of(_cachedMaterials!);
     final index = _cachedMaterials!.indexWhere((m) => m.id == id);
     
     final updatedMaterial = MaterialEntity(
@@ -115,6 +117,7 @@ class MaterialRepository implements AbstractMaterialRepository {
   @override
   Future<void> deleteMaterial(int id) async {
     await getAllMaterials();
+    _cachedMaterials = List<MaterialEntity>.of(_cachedMaterials!);
     try {
       await dio.delete('${AppConstants.productsEndpoint}/$id');
     } catch (_) {
